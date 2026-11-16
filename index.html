@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FREON AI — Made in Franky</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- GERBANG LOGIN & AKTIVASI -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card" id="authCard">
+      <div class="auth-logo-center">
+        <svg width="56" height="56" viewBox="0 0 100 100">
+          <circle class="ring-outer" cx="50" cy="50" r="42" fill="none" stroke="#38bdf8" stroke-width="5" stroke-dasharray="50 20 15 20" stroke-linecap="round"/>
+          <circle class="ring-inner" cx="50" cy="50" r="28" fill="none" stroke="#34d399" stroke-width="4" stroke-dasharray="30 25" stroke-linecap="round"/>
+          <polygon class="core-star" points="50,30 55,45 70,50 55,55 50,70 45,55 30,50 45,45" fill="#ffffff"/>
+        </svg>
+        <div class="auth-role-badge" id="authRoleBadge">CUSTOMER PORTAL</div>
+        <div class="auth-title" id="authTitle">Masuk ke FREON AI</div>
+        <div class="auth-subtitle" id="authSubtitle">Gunakan akun customer Anda untuk mengakses AI Studio</div>
+      </div>
+
+      <div class="auth-error" id="authErrorBox"></div>
+
+      <form id="authForm">
+        <div class="auth-group">
+          <label id="authUserLabel" for="authUsername">Username Customer</label>
+          <input type="text" id="authUsername" class="auth-input" placeholder="Masukkan username..." required autocomplete="off">
+        </div>
+        <div class="auth-group">
+          <label id="authPassLabel" for="authPassword">Password</label>
+          <input type="password" id="authPassword" class="auth-input" placeholder="••••••••" required>
+        </div>
+
+        <div class="auth-group" id="authActivationGroup" style="display:none;">
+          <label for="authActivationCode">🔑 Kode Aktivasi (1x Pakai dari Admin)</label>
+          <input type="text" id="authActivationCode" class="auth-input code-activation" placeholder="Contoh: FREON-2026" autocomplete="off">
+          <div style="font-size:11px; color:#6ee7b7; margin-top:6px;">
+            🎁 Kode otomatis hangus setelah dipakai & akun mendapat <strong>5.000 Token</strong>.
+          </div>
+        </div>
+
+        <button type="submit" class="auth-submit-btn" id="authSubmitBtn">Masuk sebagai Customer</button>
+      </form>
+
+      <div class="auth-bottom-links">
+        <div class="small-switch-text" id="customerRegisterToggle">
+          Belum punya akun customer? <button type="button" class="inline-link-btn cyan" id="btnToRegister">Daftar di sini</button>
+        </div>
+        <div class="admin-switch-tiny" id="adminSwitchToggle">
+          Pengelola sistem? <button type="button" class="inline-link-btn amber" id="btnToAdmin">Login ke Akun Admin</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN CONTROL PANEL MODAL -->
+  <div class="admin-modal-overlay" id="adminModalOverlay">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h2>🛡️ FREON Admin Control — Kelola Customer & Tim Admin</h2>
+        <button type="button" class="close-modal-btn" id="btnCloseAdminModal">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <!-- KODE AKTIVASI 1x PAKAI -->
+        <div class="activation-key-banner">
+          <div class="activation-key-info">
+            🔑 Kode Aktivasi Aktif (1x Pakai): <code id="adminActivationCodeDisplay">FREON-2026</code>
+            <div class="auto-rotate-tag">⚡ Otomatis berubah setiap kali 1 customer mendaftar</div>
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="tbl-btn" onclick="copyActivationCode()">📋 Salin</button>
+            <button type="button" class="tbl-btn" onclick="regenerateNewActivationCode()">🔄 Acak Baru</button>
+            <button type="button" class="tbl-btn" onclick="changeActivationCodeManual()">✏️ Set Manual</button>
+          </div>
+        </div>
+
+        <!-- BAGIAN KELOLA ANGGOTA ADMIN -->
+        <div style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 14px; padding: 14px;">
+          <div style="font-size:12px; font-weight:700; color:#fcd34d; margin-bottom:8px;">👑 Kelola Anggota Admin & Pengelola (Akses Unlimited)</div>
+          <form class="add-customer-form" id="addAdminForm" style="grid-template-columns: 1.3fr 1.3fr auto; margin-bottom: 12px;">
+            <input type="text" id="newAdminUser" placeholder="Username Admin Baru" required>
+            <input type="text" id="newAdminPass" placeholder="Password Admin" required>
+            <button type="submit" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1c1002;">+ Tambah Admin</button>
+          </form>
+          <div class="customer-table-wrap">
+            <table class="customer-table">
+              <thead>
+                <tr>
+                  <th>Username Admin</th>
+                  <th>Password</th>
+                  <th>Peran</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="adminTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- BAGIAN BUAT AKUN CUSTOMER -->
+        <div>
+          <div style="font-size:12px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">+ Buat Akun Customer Manual</div>
+          <form class="add-customer-form" id="addCustomerForm">
+            <input type="text" id="newCustUser" placeholder="Username Customer" required>
+            <input type="text" id="newCustPass" placeholder="Password" required>
+            <input type="number" id="newCustQuota" placeholder="Kuota Token (misal: 20000)" value="20000" min="0" required>
+            <button type="submit">+ Tambah Akun</button>
+          </form>
+        </div>
+
+        <!-- DAFTAR AKUN CUSTOMER -->
+        <div>
+          <div style="font-size:12px; font-weight:700; color:#cbd5e1; margin-bottom:8px;">Daftar Akun Customer Terdaftar</div>
+          <div class="customer-table-wrap">
+            <table class="customer-table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Password</th>
+                  <th>Sisa Kuota Token</th>
+                  <th>Status</th>
+                  <th>Aksi Pengelola</th>
+                </tr>
+              </thead>
+              <tbody id="customerTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-header">
+      <div class="brand-left">
+        <div class="brand-logo-wrap">
+          <svg width="26" height="26" viewBox="0 0 100 100">
+            <circle class="ring-outer" cx="50" cy="50" r="42" fill="none" stroke="#38bdf8" stroke-width="5.5" stroke-dasharray="45 20 15 20" stroke-linecap="round"/>
+            <circle class="ring-inner" cx="50" cy="50" r="28" fill="none" stroke="#34d399" stroke-width="4.5" stroke-dasharray="30 25" stroke-linecap="round"/>
+            <polygon class="core-star" points="50,30 55,45 70,50 55,55 50,70 45,55 30,50 45,45" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">FREON AI</div>
+          <div class="brand-sub">Made in Franky</div>
+        </div>
+      </div>
+      <span class="pro-pill">2.1 CORE</span>
+    </div>
+
+    <button type="button" class="new-chat-btn" onclick="selectModule('general', true)">
+      <span>+ New Session</span>
+      <span>✎</span>
+    </button>
+
+    <div class="sidebar-split-container">
+      <div class="sidebar-half">
+        <div class="section-label">
+          <span>FREON Modules</span>
+          <span style="font-size:9px; color:#64748b;">↕ Scroll</span>
+        </div>
+        <div class="gpt-modules" id="moduleList">
+          <div class="module-item active" data-mod="general" onclick="selectModule('general', true)">
+            <span class="module-icon">✦</span>
+            <span>FREON Chat</span>
+          </div>
+          <div class="module-item" data-mod="image" onclick="selectModule('image', true)">
+            <span class="module-icon">🎨</span>
+            <span>Image Generator</span>
+          </div>
+          <div class="module-item" data-mod="video" onclick="selectModule('video', true)">
+            <span class="module-icon">🎬</span>
+            <span>Video Studio</span>
+          </div>
+          <div class="module-item" data-mod="coding" onclick="selectModule('coding', true)">
+            <span class="module-icon">💻</span>
+            <span>Coding & Canvas</span>
+          </div>
+          <div class="module-item" data-mod="research" onclick="selectModule('research', true)">
+            <span class="module-icon">🌐</span>
+            <span>Deep Research</span>
+          </div>
+          <div class="module-item" data-mod="data" onclick="selectModule('data', true)">
+            <span class="module-icon">📊</span>
+            <span>Data Analyst & Math</span>
+          </div>
+          <div class="module-item" data-mod="writing" onclick="selectModule('writing', true)">
+            <span class="module-icon">✍️</span>
+            <span>Writing, Slide & Tutor</span>
+          </div>
+          <div class="module-item" data-mod="memory" onclick="viewMemories()">
+            <span class="module-icon">🧠</span>
+            <span>Personalization Memory</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-half">
+        <div class="section-label">
+          <span>Riwayat Obrolan</span>
+          <span style="font-size:9px; color:#64748b;">↕ Scroll</span>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="quota-strip">
+        <span>Sisa Kuota Token:</span>
+        <strong id="sidebarTokenDisplay">∞ Unlimited</strong>
+      </div>
+      <div class="user-row-footer">
+        <div class="user-info">
+          <div class="user-badge" id="sidebarUserAvatar">F</div>
+          <div>
+            <span style="font-weight: 700;" id="sidebarUserName">Franky</span>
+            <span class="creator-tag" id="sidebarUserRole">Admin & Creator</span>
+          </div>
+        </div>
+        <button type="button" class="logout-btn" onclick="logoutUser()" title="Keluar Akun">Keluar</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <main class="main" id="mainApp">
+    <div class="aurora-orb"></div>
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="sidebar-toggle" onclick="toggleSidebar()" title="Buka/Tutup Sidebar">☰</button>
+        <select id="modelSelect" class="model-selector" onchange="onEngineChange()">
+          <option value="hybrid_1_1">⚡ FREON 1.1 Hybrid ▾</option>
+          <option value="flash_1_1">🚀 FREON 1.1 Flash ▾</option>
+          <option value="sonic_2_1">🔊 FREON 2.1 Sonic ▾</option>
+        </select>
+        <div class="active-mode-pill" id="activeModuleBadge">✦ FREON Chat</div>
+        <div class="engine-spec-pill" id="engineSpecBadge">Balanced Reasoning + Tools</div>
+      </div>
+      <div class="topbar-right">
+        <button type="button" class="admin-panel-btn" id="adminPanelTopBtn" onclick="openAdminModal()">🛡️ Kelola Akun</button>
+        <div class="agent-status" id="agentStatus">● Cloud Synced</div>
+      </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer"></div>
+
+    <div class="input-wrapper">
+      <div class="plus-popover" id="plusPopover">
+        <div class="popover-item" onclick="triggerUpload()">📎 Upload Gambar / Dokumen</div>
+        <div class="popover-item" onclick="quickSwitchModule('image', 'Buatkan gambar ')">🎨 Create Image</div>
+        <div class="popover-item" onclick="quickSwitchModule('video', 'Buatkan video ')">🎬 Create Video</div>
+        <div class="popover-item" onclick="quickSwitchModule('research', 'Riset tentang ')">🌐 Search the Web</div>
+        <div class="popover-item" onclick="quickSwitchModule('coding', 'Buatkan kode ')">💻 Canvas / Coding</div>
+        <div class="popover-item" onclick="quickSwitchModule('writing', 'Buatkan file download ')">📄 Generate File</div>
+      </div>
+
+      <div class="attachment-preview" id="attachmentPreview">
+        <span id="attachmentLabel"></span>
+        <button type="button" onclick="clearAttachment()">✕</button>
+      </div>
+
+      <div class="input-box">
+        <input type="file" id="fileInput" style="display:none" accept="image/*,.txt,.csv,.json,.js,.html,.css,.md,.xml,.log,.py" onchange="handleFileUpload(event)">
+        <button type="button" class="icon-btn" onclick="togglePlusMenu(event)" title="Tools & Lampiran (+)">+</button>
+        <input type="text" id="userInput" placeholder="Tanya apa saja ke FREON AI..." autocomplete="off">
+        <button type="button" class="icon-btn" id="micBtn" onclick="toggleVoiceInput()" title="Voice Mode (Bicara)">🎤</button>
+        <button type="button" id="sendBtn" class="send-btn" onclick="handleSendOrStop()" title="Kirim">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+      <div class="footer-credit"><span>FREON AI</span> • Made in Franky</div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
